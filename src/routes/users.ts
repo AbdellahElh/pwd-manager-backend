@@ -43,13 +43,14 @@ router.get(
 /**
  * POST /users
  * Create a new user.
+ * Expected body: { email: string, password: string }
  */
 router.post(
   "/",
   asyncHandler(async (req: Request, res: Response): Promise<void> => {
     try {
-      const { email } = req.body;
-      const newUser = await createUser({ email });
+      const { email, password } = req.body;
+      const newUser = await createUser({ email, password });
       res.status(201).json(newUser);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -59,15 +60,16 @@ router.post(
 
 /**
  * PUT /users/:id
- * Update a user's email.
+ * Update a user's email and/or password.
+ * Expected body may include: { email?: string, password?: string }
  */
 router.put(
   "/:id",
   asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const id = parseInt(req.params.id, 10);
     try {
-      const { email } = req.body;
-      const updatedUser = await updateUser(id, { email });
+      const { email, password } = req.body;
+      const updatedUser = await updateUser(id, { email, password });
       res.json(updatedUser);
     } catch (error: any) {
       res.status(400).json({ message: error.message });

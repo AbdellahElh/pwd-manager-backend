@@ -1,10 +1,13 @@
 // prisma/seed.ts
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
+const DEFAULT_PASSWORD = "defaultPassword"; // Change as needed.
+const SALT_ROUNDS = 10;
 
 async function main() {
-  // Clear existing credentials and users (order matters due to relations)
+  // Clear existing credentials and users (order matters because of relations)
   await prisma.credential.deleteMany();
   await prisma.user.deleteMany();
 
@@ -17,19 +20,21 @@ async function main() {
     { email: "eve@example.com" },
   ];
 
-  // Create each user along with two credential items
+  // Create each user with a hashed password and two credential items
   for (const user of usersData) {
+    const passwordHash = await bcrypt.hash(DEFAULT_PASSWORD, SALT_ROUNDS);
     await prisma.user.create({
       data: {
         email: user.email,
-        // Nested creation of two credentials per user
+        passwordHash,
+        // Optionally, you can leave faceDescriptor as null
         credentials: {
           create: [
             {
               title: "Instagram",
               website: "https://www.instagram.com",
               username: user.email,
-              password: "password1", // Consider encrypting this field in production
+              password: "password1", // In production, encrypt this field if needed.
             },
             {
               title: "Facebook",
