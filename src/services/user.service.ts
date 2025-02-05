@@ -7,6 +7,13 @@ export interface UserData {
   password: string;
 }
 
+async function userExists(id: number): Promise<void> {
+  const user = await prisma.user.findUnique({ where: { id } });
+  if (!user) {
+    throw new Error("User not found");
+  }
+}
+
 const SALT_ROUNDS = 10;
 
 /**
@@ -23,6 +30,7 @@ export async function getAllUsers() {
 }
 
 export async function getUserById(id: number) {
+  await userExists(id);
   return prisma.user.findUnique({ where: { id } });
 }
 
@@ -50,6 +58,8 @@ export async function createUser(data: UserData) {
 }
 
 export async function updateUser(id: number, data: Partial<UserData>) {
+  await userExists(id);
+
   const updateData: { email?: string; passwordHash?: string } = {};
 
   if (data.email) {
@@ -68,5 +78,6 @@ export async function updateUser(id: number, data: Partial<UserData>) {
 }
 
 export async function deleteUser(id: number) {
+  await userExists(id);
   return prisma.user.delete({ where: { id } });
 }

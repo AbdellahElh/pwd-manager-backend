@@ -10,7 +10,7 @@
   },
   "scripts": {
     "seed": "ts-node prisma/seed.ts",
-    "dev": "ts-node src/server.ts",
+    "start": "ts-node src/server.ts",
     "watch": "node --watch --watch-preserve-output -r ts-node/register src/server.ts",
     "migrate": "npx prisma migrate dev"
   },

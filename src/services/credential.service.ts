@@ -9,11 +9,19 @@ export interface CredentialData {
   userId: number;
 }
 
+async function credentialExists(id: number): Promise<void> {
+  const credential = await prisma.credential.findUnique({ where: { id } });
+  if (!credential) {
+    throw new Error("Credential not found");
+  }
+}
+
 export async function getAllCredentials() {
   return await prisma.credential.findMany();
 }
 
 export async function getCredentialById(id: number) {
+  await credentialExists(id);
   return await prisma.credential.findUnique({ where: { id } });
 }
 
@@ -31,6 +39,7 @@ export async function updateCredential(
   id: number,
   data: Partial<Omit<CredentialData, "userId">>
 ) {
+  await credentialExists(id);
   return await prisma.credential.update({
     where: { id },
     data,
@@ -38,6 +47,7 @@ export async function updateCredential(
 }
 
 export async function deleteCredential(id: number) {
+  await credentialExists(id);
   return await prisma.credential.delete({
     where: { id },
   });
