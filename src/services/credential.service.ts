@@ -21,8 +21,11 @@ export async function getAllCredentials() {
 }
 
 export async function getCredentialById(id: number) {
-  await credentialExists(id);
   return await prisma.credential.findUnique({ where: { id } });
+}
+
+export async function getCredentialsByUserId(userId: number) {
+  return await prisma.credential.findMany({ where: { userId } });
 }
 
 export async function createCredential(data: CredentialData) {
@@ -59,6 +62,8 @@ export function getTitleFromWebsite(website: string): string {
     let host = url.hostname;
     if (host.startsWith("www.")) {
       host = host.slice(4);
+    } else {
+      host = website;
     }
     const domain = host.split(".")[0];
     return domain.charAt(0).toUpperCase() + domain.slice(1);
