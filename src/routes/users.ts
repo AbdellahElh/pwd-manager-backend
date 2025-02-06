@@ -8,7 +8,6 @@ import {
   updateUser,
   deleteUser,
 } from "../services/user.service";
-import { uploadFaceImage } from "../services/blob.service";
 
 const router = Router();
 
@@ -48,15 +47,14 @@ router.get(
  */
 router.post(
   "/",
-  asyncHandler(async (req: Request, res: Response) => {
-    const { email, password, faceImageBase64 } = req.body;
-    // Convert base64 to Buffer, then upload
-    const fileBuffer = Buffer.from(faceImageBase64, "base64");
-    const fileName = `face_${Date.now()}.jpg`;
-    const faceImageUrl = await uploadFaceImage(fileBuffer, fileName);
-
-    const newUser = await createUser({ email, password, faceImageUrl });
-    res.status(201).json(newUser);
+  asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { email, password } = req.body;
+      const newUser = await createUser({ email, password });
+      res.status(201).json(newUser);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
   })
 );
 
