@@ -1,6 +1,8 @@
 // src/routes/credentials.ts
 import { Router, Request, Response } from "express";
 import asyncHandler from "express-async-handler";
+import { ZodError } from "zod";
+import { credentialSchema } from "../validators/credential.validator";
 import {
   getAllCredentials,
   getCredentialById,
@@ -58,10 +60,23 @@ router.get(
 router.post(
   "/",
   asyncHandler(async (req: Request, res: Response): Promise<void> => {
-    const { title, website, username, password, userId } = req.body;
-    const data: CredentialData = { title, website, username, password, userId };
-    const newCredential = await createCredential(data);
-    res.status(201).json(newCredential);
+    try {
+      // Validate the request body against the schema.
+      const validatedData = credentialSchema.parse(req.body);
+      const newCredential = await createCredential(
+        validatedData as CredentialData
+      );
+      res.status(201).json(newCredential);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        // Return a 400 response with detailed error messages.
+        res.status(400).json({
+          message: "Validation failed",
+          errors: error.errors,
+        });
+      }
+      throw error;
+    }
   })
 );
 
@@ -72,15 +87,23 @@ router.post(
 router.put(
   "/:id",
   asyncHandler(async (req: Request, res: Response): Promise<void> => {
-    const id = parseInt(req.params.id, 10);
-    const { title, website, username, password } = req.body;
-    const updatedCredential = await updateCredential(id, {
-      title,
-      website,
-      username,
-      password,
-    });
-    res.json(updatedCredential);
+    try {
+      const id = parseInt(req.params.id, 10);
+      const validatedData = credentialSchema.parse(req.body);
+      const updatedCredential = await updateCredential(
+        id,
+        validatedData as CredentialData
+      );
+      res.json(updatedCredential);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        res.status(400).json({
+          message: "Validation failed",
+          errors: error.errors,
+        });
+      }
+      throw error;
+    }
   })
 );
 

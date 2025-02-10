@@ -1,6 +1,8 @@
 // src/routes/users.ts
 import { Router, Request, Response } from "express";
 import asyncHandler from "express-async-handler";
+import { ZodError } from "zod";
+import { userSchema } from "../validators/user.validator";
 import {
   getAllUsers,
   getUserById,
@@ -49,10 +51,17 @@ router.post(
   "/",
   asyncHandler(async (req: Request, res: Response): Promise<void> => {
     try {
-      const { email, password } = req.body;
-      const newUser = await createUser({ email, password });
+      // Validate the request body using the userSchema
+      const validatedUser = userSchema.parse(req.body);
+      const newUser = await createUser(validatedUser);
       res.status(201).json(newUser);
     } catch (error: any) {
+      if (error instanceof ZodError) {
+        res.status(400).json({
+          message: "Validation failed",
+          errors: error.errors,
+        });
+      }
       res.status(400).json({ message: error.message });
     }
   })
@@ -68,10 +77,17 @@ router.put(
   asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const id = parseInt(req.params.id, 10);
     try {
-      const { email, password } = req.body;
-      const updatedUser = await updateUser(id, { email, password });
+      // Validate the request body using the userSchema
+      const validatedData = userSchema.parse(req.body);
+      const updatedUser = await updateUser(id, validatedData);
       res.json(updatedUser);
     } catch (error: any) {
+      if (error instanceof ZodError) {
+        res.status(400).json({
+          message: "Validation failed",
+          errors: error.errors,
+        });
+      }
       res.status(400).json({ message: error.message });
     }
   })

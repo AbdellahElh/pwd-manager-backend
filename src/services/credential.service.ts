@@ -30,6 +30,10 @@ export async function getCredentialsByUserId(userId: number) {
 
 export async function createCredential(data: CredentialData) {
   const { title, website, username, password, userId } = data;
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) {
+    throw new Error(`User with id ${userId} does not exist.`);
+  }
   if (!website || !username || !password || !userId) {
     throw new Error("Missing required fields");
   }
