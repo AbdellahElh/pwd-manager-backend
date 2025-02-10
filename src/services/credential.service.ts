@@ -2,8 +2,9 @@
 import prisma from "../db";
 
 export interface CredentialData {
-  title: string;
+  id?: number;
   website: string;
+  title: string;
   username: string;
   password: string;
   userId: number;
@@ -29,7 +30,7 @@ export async function getCredentialsByUserId(userId: number) {
 }
 
 export async function createCredential(data: CredentialData) {
-  const { title, website, username, password, userId } = data;
+  const { website, title, username, password, userId } = data;
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) {
     throw new Error(`User with id ${userId} does not exist.`);
@@ -37,8 +38,12 @@ export async function createCredential(data: CredentialData) {
   if (!website || !username || !password || !userId) {
     throw new Error("Missing required fields");
   }
+  // Normalize website URL
+  if (!website.startsWith('http') || website.startsWith('www')) {
+    data.website = `https://${website}`;
+  }
   // If title is empty, generate it from the website.
-  data.title = title || getTitleFromWebsite(website);
+  data.title = title || getTitleFromWebsite(data.website);
   return await prisma.credential.create({ data });
 }
 

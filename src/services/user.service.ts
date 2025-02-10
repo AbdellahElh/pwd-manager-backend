@@ -3,6 +3,7 @@ import prisma from "../db";
 import bcrypt from "bcrypt";
 
 export interface UserData {
+  id?: number;
   email: string;
   password: string;
 }

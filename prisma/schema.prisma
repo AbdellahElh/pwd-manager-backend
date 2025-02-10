@@ -21,8 +21,8 @@ model User {
 
 model Credential {
   id         Int      @id @default(autoincrement())
-  title      String?   // e.g. "Instagram" or "www.instagram.com"
   website    String   // e.g. "www.instagram.com"
+  title      String?   // e.g. "Instagram" or "www.instagram.com"
   username   String   // e.g. "user@gmail.com"
   password   String   // stored securely (encrypt if needed)
   createdAt  DateTime @default(now())

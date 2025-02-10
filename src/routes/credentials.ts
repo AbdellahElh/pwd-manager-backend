@@ -61,15 +61,11 @@ router.post(
   "/",
   asyncHandler(async (req: Request, res: Response): Promise<void> => {
     try {
-      // Validate the request body against the schema.
-      const validatedData = credentialSchema.parse(req.body);
-      const newCredential = await createCredential(
-        validatedData as CredentialData
-      );
-      res.status(201).json(newCredential);
+      const newCredential = await createCredential(req.body as CredentialData);
+      const validatedData = credentialSchema.parse(newCredential);
+      res.status(201).json(validatedData);
     } catch (error) {
       if (error instanceof ZodError) {
-        // Return a 400 response with detailed error messages.
         res.status(400).json({
           message: "Validation failed",
           errors: error.errors,
@@ -89,12 +85,12 @@ router.put(
   asyncHandler(async (req: Request, res: Response): Promise<void> => {
     try {
       const id = parseInt(req.params.id, 10);
-      const validatedData = credentialSchema.parse(req.body);
       const updatedCredential = await updateCredential(
         id,
-        validatedData as CredentialData
+        req.body as CredentialData
       );
-      res.json(updatedCredential);
+      const validatedData = credentialSchema.parse(updatedCredential);
+      res.json(validatedData);
     } catch (error) {
       if (error instanceof ZodError) {
         res.status(400).json({

@@ -2,10 +2,10 @@
 import { z } from "zod";
 
 export const credentialSchema = z.object({
-  title: z.string().optional(),
   website: z
     .string({ required_error: "website is required" })
     .url("Please provide a valid URL for the website."),
+  title: z.string().optional(),
   username: z
     .string({ required_error: "username is required" })
     .min(1, "Username cannot be empty."),
