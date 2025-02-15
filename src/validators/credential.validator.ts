@@ -2,6 +2,7 @@
 import { z } from "zod";
 
 export const credentialSchema = z.object({
+  id: z.number(),
   website: z
     .string({ required_error: "website is required" })
     .url("Please provide a valid URL for the website."),

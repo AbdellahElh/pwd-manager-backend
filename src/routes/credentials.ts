@@ -10,8 +10,8 @@ import {
   createCredential,
   updateCredential,
   deleteCredential,
-  CredentialData,
 } from "../services/credential.service";
+import { NewCredentialEntry } from "../types";
 
 const router = Router();
 
@@ -34,7 +34,7 @@ router.get(
 router.get(
   "/:id",
   asyncHandler(async (req: Request, res: Response): Promise<void> => {
-    const id = parseInt(req.params.id, 10);
+    const id = +req.params.id;
     const credential = await getCredentialById(id);
     res.json(credential);
   })
@@ -47,7 +47,7 @@ router.get(
 router.get(
   "/user/:userId",
   asyncHandler(async (req: Request, res: Response): Promise<void> => {
-    const userId = parseInt(req.params.userId, 10);
+    const userId = +req.params.userId;
     const credentials = await getCredentialsByUserId(userId);
     res.json(credentials);
   })
@@ -61,7 +61,9 @@ router.post(
   "/",
   asyncHandler(async (req: Request, res: Response): Promise<void> => {
     try {
-      const newCredential = await createCredential(req.body as CredentialData);
+      const newCredential = await createCredential(
+        req.body as NewCredentialEntry
+      );
       const validatedData = credentialSchema.parse(newCredential);
       res.status(201).json(validatedData);
     } catch (error) {
@@ -84,10 +86,10 @@ router.put(
   "/:id",
   asyncHandler(async (req: Request, res: Response): Promise<void> => {
     try {
-      const id = parseInt(req.params.id, 10);
+      const id = +req.params.id;
       const updatedCredential = await updateCredential(
         id,
-        req.body as CredentialData
+        req.body as NewCredentialEntry
       );
       const validatedData = credentialSchema.parse(updatedCredential);
       res.json(validatedData);
@@ -110,7 +112,7 @@ router.put(
 router.delete(
   "/:id",
   asyncHandler(async (req: Request, res: Response): Promise<void> => {
-    const id = parseInt(req.params.id, 10);
+    const id = +req.params.id;
     const deletedCredential = await deleteCredential(id);
     res.json(deletedCredential);
   })

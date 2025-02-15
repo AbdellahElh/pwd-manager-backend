@@ -1,12 +1,7 @@
 // src/services/user.service.ts
 import prisma from "../db";
 import bcrypt from "bcrypt";
-
-export interface UserData {
-  id?: number;
-  email: string;
-  password: string;
-}
+import { NewUserEntry, UserEntry } from "../types";
 
 async function userExists(id: number): Promise<void> {
   const user = await prisma.user.findUnique({ where: { id } });
@@ -17,15 +12,6 @@ async function userExists(id: number): Promise<void> {
 
 const SALT_ROUNDS = 10;
 
-/**
- * Simple email validation using regex.
- * In production, consider using a library such as validator.js.
- */
-function isValidEmail(email: string): boolean {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-}
-
 export async function getAllUsers() {
   return prisma.user.findMany();
 }
@@ -35,18 +21,7 @@ export async function getUserById(id: number) {
   return prisma.user.findUnique({ where: { id } });
 }
 
-export async function createUser(data: UserData) {
-  // Validate that email and password are provided
-  if (!data.email) {
-    throw new Error("Email is required");
-  }
-  if (!data.password) {
-    throw new Error("Password is required");
-  }
-  if (!isValidEmail(data.email)) {
-    throw new Error("Invalid email format");
-  }
-
+export async function createUser(data: NewUserEntry) {
   // Hash the password before storing it
   const passwordHash = await bcrypt.hash(data.password, SALT_ROUNDS);
 
@@ -58,20 +33,14 @@ export async function createUser(data: UserData) {
   });
 }
 
-export async function updateUser(id: number, data: Partial<UserData>) {
+export async function updateUser(id: number, data: NewUserEntry) {
   await userExists(id);
 
-  const updateData: { email?: string; passwordHash?: string } = {};
+  const updateData = {
+    email: data.email,
+    passwordHash: await bcrypt.hash(data.password, SALT_ROUNDS),
+  };
 
-  if (data.email) {
-    if (!isValidEmail(data.email)) {
-      throw new Error("Invalid email format");
-    }
-    updateData.email = data.email;
-  }
-  if (data.password) {
-    updateData.passwordHash = await bcrypt.hash(data.password, SALT_ROUNDS);
-  }
   return prisma.user.update({
     where: { id },
     data: updateData,

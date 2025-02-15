@@ -1,14 +1,6 @@
 // src/services/credential.service.ts
 import prisma from "../db";
-
-export interface CredentialData {
-  id?: number;
-  website: string;
-  title: string;
-  username: string;
-  password: string;
-  userId: number;
-}
+import { NewCredentialEntry } from "../types";
 
 async function credentialExists(id: number): Promise<void> {
   const credential = await prisma.credential.findUnique({ where: { id } });
@@ -29,29 +21,36 @@ export async function getCredentialsByUserId(userId: number) {
   return await prisma.credential.findMany({ where: { userId } });
 }
 
-export async function createCredential(data: CredentialData) {
+export async function createCredential(data: NewCredentialEntry) {
   const { website, title, username, password, userId } = data;
+
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) {
     throw new Error(`User with id ${userId} does not exist.`);
   }
-  if (!website || !username || !password || !userId) {
-    throw new Error("Missing required fields");
-  }
   // Normalize website URL
-  if (!website.startsWith('http') || website.startsWith('www')) {
+  if (!website.startsWith("http") || website.startsWith("www")) {
     data.website = `https://${website}`;
   }
   // If title is empty, generate it from the website.
   data.title = title || getTitleFromWebsite(data.website);
+
   return await prisma.credential.create({ data });
 }
 
-export async function updateCredential(
-  id: number,
-  data: Partial<Omit<CredentialData, "userId">>
-) {
+export async function updateCredential(id: number, data: NewCredentialEntry) {
   await credentialExists(id);
+
+  const user = await prisma.user.findUnique({ where: { id: data.userId } });
+  if (!user) {
+    throw new Error(`User with id ${data.userId} does not exist.`);
+  }
+
+  // Normalize website URL if needed
+  if (!data.website.startsWith("http") || data.website.startsWith("www")) {
+    data.website = `https://${data.website}`;
+  }
+
   return await prisma.credential.update({
     where: { id },
     data,
