@@ -17,9 +17,7 @@ app.use("/credentials", credentialRoutes);
 app.use(
   (
     err: any,
-    req: express.Request,
     res: express.Response,
-    next: express.NextFunction
   ) => {
     console.error(err);
     // Use err.status if available (for custom errors) or default to 500.

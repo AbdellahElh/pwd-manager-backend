@@ -27,7 +27,6 @@ async function main() {
       data: {
         email: user.email,
         passwordHash,
-        // Optionally, you can leave faceDescriptor as null
         credentials: {
           create: [
             {

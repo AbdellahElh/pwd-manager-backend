@@ -1,7 +1,7 @@
 // src/services/user.service.ts
-import prisma from "../db";
 import bcrypt from "bcrypt";
-import { NewUserEntry, UserEntry } from "../types";
+import prisma from "../db";
+import { NewUserEntry } from "../types";
 
 async function userExists(id: number): Promise<void> {
   const user = await prisma.user.findUnique({ where: { id } });
@@ -29,6 +29,20 @@ export async function createUser(data: NewUserEntry) {
     data: {
       email: data.email,
       passwordHash,
+    },
+  });
+}
+
+export async function createUserWithImage(
+  data: NewUserEntry,
+  faceImagePath: string
+) {
+  const passwordHash = await bcrypt.hash(data.password, SALT_ROUNDS);
+  return prisma.user.create({
+    data: {
+      email: data.email,
+      passwordHash,
+      faceImage: faceImagePath,
     },
   });
 }
