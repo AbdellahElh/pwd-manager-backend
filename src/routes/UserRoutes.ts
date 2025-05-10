@@ -4,6 +4,7 @@ import fs from "fs";
 import multer from "multer";
 import path from "path";
 import { ZodError } from "zod";
+import { UserCreateSchema } from "../schemas/UserSchema";
 import {
   createUser,
   createUserWithImage,
@@ -12,7 +13,6 @@ import {
   getUserById,
   updateUser,
 } from "../services/user.service";
-import { userSchema } from "../validators/user.validator";
 
 const router = Router();
 
@@ -72,7 +72,7 @@ router.get("/:id", async (req: Request, res: Response) => {
 router.post("/", async (req: Request, res: Response) => {
   try {
     // Validate the request body using the userSchema
-    const validatedUser = userSchema.parse(req.body);
+    const validatedUser = UserCreateSchema.parse(req.body);
     const newUser = await createUser(validatedUser);
     const { passwordHash, ...userWithoutPassword } = newUser;
     res.status(201).json(userWithoutPassword);
@@ -125,7 +125,7 @@ router.put("/:id", async (req: Request, res: Response) => {
   const id = +req.params.id;
   try {
     // Validate the request body using the userSchema
-    const validatedData = userSchema.parse(req.body);
+    const validatedData = UserCreateSchema.parse(req.body);
     const updatedUser = await updateUser(id, validatedData);
     res.json(updatedUser);
   } catch (error: any) {

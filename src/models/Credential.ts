@@ -8,11 +8,3 @@ export interface CredentialEntry {
 }
 
 export type NewCredentialEntry = Omit<CredentialEntry, "id">;
-
-export interface UserEntry {
-  id: number;
-  email: string;
-  password: string;
-}
-
-export type NewUserEntry = Omit<UserEntry, "id">;

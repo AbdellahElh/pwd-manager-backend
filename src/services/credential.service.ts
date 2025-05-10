@@ -1,6 +1,6 @@
 // src/services/credential.service.ts
 import prisma from "../db";
-import { NewCredentialEntry } from "../types";
+import { NewCredentialEntry } from "../models/Credential";
 
 async function credentialExists(id: number): Promise<void> {
   const credential = await prisma.credential.findUnique({ where: { id } });

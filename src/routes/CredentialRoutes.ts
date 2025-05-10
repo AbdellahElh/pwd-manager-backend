@@ -1,16 +1,16 @@
 // src/routes/credentials.ts
-import { Router, Request, Response } from "express";
+import { Request, Response, Router } from "express";
 import { ZodError } from "zod";
-import { credentialSchema } from "../validators/credential.validator";
+import { NewCredentialEntry } from "../models/Credential";
 import {
+  createCredential,
+  deleteCredential,
   getAllCredentials,
   getCredentialById,
   getCredentialsByUserId,
-  createCredential,
   updateCredential,
-  deleteCredential,
 } from "../services/credential.service";
-import { NewCredentialEntry } from "../types";
+import { credentialSchema } from "../validators/credential.validator";
 
 const router = Router();
 

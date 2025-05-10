@@ -1,7 +1,7 @@
 // src/services/user.service.ts
 import bcrypt from "bcrypt";
 import prisma from "../db";
-import { NewUserEntry } from "../types";
+import { NewUserEntry } from "../models/User";
 
 async function userExists(id: number): Promise<void> {
   const user = await prisma.user.findUnique({ where: { id } });
