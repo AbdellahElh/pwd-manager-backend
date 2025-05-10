@@ -1,11 +1,12 @@
 // src/services/credential.service.ts
 import prisma from "../db";
 import { NewCredentialEntry } from "../models/Credential";
+import { ServiceError } from "./ServiceError";
 
 async function credentialExists(id: number): Promise<void> {
   const credential = await prisma.credential.findUnique({ where: { id } });
   if (!credential) {
-    throw new Error("Credential not found");
+    throw ServiceError.notFound(`Credential with id ${id} not found`);
   }
 }
 
@@ -14,7 +15,8 @@ export async function getAllCredentials() {
 }
 
 export async function getCredentialById(id: number) {
-  return await prisma.credential.findUnique({ where: { id } });
+  await credentialExists(id);
+  return prisma.credential.findUnique({ where: { id } });
 }
 
 export async function getCredentialsByUserId(userId: number) {
@@ -26,7 +28,7 @@ export async function createCredential(data: NewCredentialEntry) {
 
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) {
-    throw new Error(`User with id ${userId} does not exist.`);
+    throw ServiceError.notFound(`User with id ${userId} does not exist`);
   }
   // Normalize website URL
   if (!website.startsWith("http") || website.startsWith("www")) {
@@ -38,22 +40,40 @@ export async function createCredential(data: NewCredentialEntry) {
   return await prisma.credential.create({ data });
 }
 
-export async function updateCredential(id: number, data: NewCredentialEntry) {
+export async function updateCredential(
+  id: number,
+  data: Partial<NewCredentialEntry>
+) {
   await credentialExists(id);
-
-  const user = await prisma.user.findUnique({ where: { id: data.userId } });
-  if (!user) {
-    throw new Error(`User with id ${data.userId} does not exist.`);
+  const updateData: Record<string, any> = {};
+  if (data.userId !== undefined) {
+    const user = await prisma.user.findUnique({ where: { id: data.userId } });
+    if (!user) {
+      throw ServiceError.notFound(`User with id ${data.userId} not found`);
+    }
+    updateData.userId = data.userId;
   }
-
-  // Normalize website URL if needed
-  if (!data.website.startsWith("http") || data.website.startsWith("www")) {
-    data.website = `https://${data.website}`;
+  if (data.website) {
+    updateData.website =
+      !data.website.startsWith("http") || data.website.startsWith("www")
+        ? `https://${data.website}`
+        : data.website;
   }
-
-  return await prisma.credential.update({
+  if (data.title) {
+    updateData.title = data.title;
+  }
+  if (data.username) {
+    updateData.username = data.username;
+  }
+  if (data.password) {
+    updateData.password = data.password;
+  }
+  if (!Object.keys(updateData).length) {
+    throw ServiceError.validationFailed("No update data provided");
+  }
+  return prisma.credential.update({
     where: { id },
-    data,
+    data: updateData,
   });
 }
 

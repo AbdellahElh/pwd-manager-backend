@@ -1,7 +1,10 @@
 // src/routes/credentials.ts
-import { Request, Response, Router } from "express";
-import { ZodError } from "zod";
-import { NewCredentialEntry } from "../models/Credential";
+import { Router } from "express";
+import { asyncHandler } from "../middleware/asyncHandler";
+import {
+  CredentialCreateSchema,
+  CredentialUpdateSchema,
+} from "../schemas/CredentialSchema";
 import {
   createCredential,
   deleteCredential,
@@ -10,7 +13,6 @@ import {
   getCredentialsByUserId,
   updateCredential,
 } from "../services/credential.service";
-import { credentialSchema } from "../validators/credential.validator";
 
 const router = Router();
 
@@ -18,85 +20,78 @@ const router = Router();
  * GET /credentials
  * Retrieve all credentials.
  */
-router.get("/", async (req: Request, res: Response) => {
-  const credentials = await getAllCredentials();
-  res.json(credentials);
-});
+router.get(
+  "/",
+  asyncHandler(async (req, res) => {
+    const credentials = await getAllCredentials();
+    res.json(credentials);
+  })
+);
 
 /**
  * GET /credentials/:id
  * Retrieve a specific credential by its id.
  */
-router.get("/:id", async (req: Request, res: Response) => {
-  const id = +req.params.id;
-  const credential = await getCredentialById(id);
-  res.json(credential);
-});
+router.get(
+  "/:id",
+  asyncHandler(async (req, res) => {
+    const id = Number(req.params.id);
+    const credential = await getCredentialById(id);
+    res.json(credential);
+  })
+);
 
 /**
  * GET /credentials/user/:userId
  * Retrieve all credentials for a specific user.
  */
-router.get("/user/:userId", async (req: Request, res: Response) => {
-  const userId = +req.params.userId;
-  const credentials = await getCredentialsByUserId(userId);
-  res.json(credentials);
-});
+router.get(
+  "/user/:userId",
+  asyncHandler(async (req, res) => {
+    const userId = Number(req.params.userId);
+    const credentials = await getCredentialsByUserId(userId);
+    res.json(credentials);
+  })
+);
 
 /**
  * POST /credentials
  * Create a new credential.
  */
-router.post("/", async (req: Request, res: Response) => {
-  try {
-    const newCredential = await createCredential(
-      req.body as NewCredentialEntry
-    );
-    const validatedData = credentialSchema.parse(newCredential);
-    res.status(201).json(validatedData);
-  } catch (error) {
-    if (error instanceof ZodError) {
-      res.status(400).json({
-        message: "Validation failed",
-        errors: error.errors,
-      });
-    }
-    throw error;
-  }
-});
+router.post(
+  "/",
+  asyncHandler(async (req, res) => {
+    const validated = CredentialCreateSchema.parse(req.body);
+    const newCredential = await createCredential(validated);
+    res.status(201).json(newCredential);
+  })
+);
 
 /**
  * PUT /credentials/:id
  * Update an existing credential.
  */
-router.put("/:id", async (req: Request, res: Response) => {
-  try {
-    const id = +req.params.id;
-    const updatedCredential = await updateCredential(
-      id,
-      req.body as NewCredentialEntry
-    );
-    const validatedData = credentialSchema.parse(updatedCredential);
-    res.json(validatedData);
-  } catch (error) {
-    if (error instanceof ZodError) {
-      res.status(400).json({
-        message: "Validation failed",
-        errors: error.errors,
-      });
-    }
-    throw error;
-  }
-});
+router.put(
+  "/:id",
+  asyncHandler(async (req, res) => {
+    const id = Number(req.params.id);
+    const validated = CredentialUpdateSchema.parse(req.body);
+    const updated = await updateCredential(id, validated as any);
+    res.status(200).json(updated);
+  })
+);
 
 /**
  * DELETE /credentials/:id
  * Delete a credential.
  */
-router.delete("/:id", async (req: Request, res: Response) => {
-  const id = +req.params.id;
-  const deletedCredential = await deleteCredential(id);
-  res.json(deletedCredential);
-});
+router.delete(
+  "/:id",
+  asyncHandler(async (req, res) => {
+    const id = Number(req.params.id);
+    const deletedCredential = await deleteCredential(id);
+    res.status(204).json(deletedCredential);
+  })
+);
 
 export default router;
