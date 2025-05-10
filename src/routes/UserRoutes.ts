@@ -1,18 +1,11 @@
 // src/routes/users.ts
-import { Request, Response, Router } from "express";
+import { Router } from "express";
 import fs from "fs";
 import multer from "multer";
 import path from "path";
-import { ZodError } from "zod";
-import { UserCreateSchema } from "../schemas/UserSchema";
-import {
-  createUser,
-  createUserWithImage,
-  deleteUser,
-  getAllUsers,
-  getUserById,
-  updateUser,
-} from "../services/user.service";
+import { asyncHandler } from "../middleware/asyncHandler";
+import { UserCreateSchema, UserUpdateSchema } from "../schemas/UserSchema";
+import { getAllUsers, getUserById, createUser, createUserWithImage, updateUser, deleteUser } from "../services/user.service";
 
 const router = Router();
 
@@ -45,47 +38,41 @@ const upload = multer({ storage });
  * GET /users
  * Retrieve all users.
  */
-router.get("/", async (req: Request, res: Response) => {
-  const users = await getAllUsers();
-  res.json(users);
-});
+router.get(
+  "/",
+  asyncHandler(async (req, res) => {
+    const users = await getAllUsers();
+    res.json(users);
+  })
+);
 
 /**
  * GET /users/:id
  * Retrieve a specific user by id.
  */
-router.get("/:id", async (req: Request, res: Response) => {
-  const id = +req.params.id;
-  const user = await getUserById(id);
-  if (!user) {
-    res.status(404).json({ message: "User not found" });
-    return;
-  }
-  res.json(user);
-});
+router.get(
+  "/:id",
+  asyncHandler(async (req, res) => {
+    const id = Number(req.params.id);
+    const user = await getUserById(id);
+    res.json(user);
+  })
+);
 
 /**
  * POST /users
  * Create a new user.
  * Expected body: { email: string, password: string }
  */
-router.post("/", async (req: Request, res: Response) => {
-  try {
-    // Validate the request body using the userSchema
+router.post(
+  "/",
+  asyncHandler(async (req, res) => {
     const validatedUser = UserCreateSchema.parse(req.body);
     const newUser = await createUser(validatedUser);
     const { passwordHash, ...userWithoutPassword } = newUser;
     res.status(201).json(userWithoutPassword);
-  } catch (error: any) {
-    if (error instanceof ZodError) {
-      res.status(400).json({
-        message: "Validation failed",
-        errors: error.errors,
-      });
-    }
-    res.status(400).json({ message: error.message });
-  }
-});
+  })
+);
 
 /**
  * POST /users/register
@@ -95,25 +82,12 @@ router.post("/", async (req: Request, res: Response) => {
 router.post(
   "/register",
   upload.single("selfie"),
-  async (req: Request, res: Response) => {
-    try {
-      const { email, password } = req.body;
-      if (!req.file) {
-        res.status(400).json({ message: "Selfie image is required" });
-        return;
-      }
-      const faceImagePath = `/images/${req.file.filename}`;
-      const newUser = await createUserWithImage(
-        { email, password },
-        faceImagePath
-      );
-      // @ts-ignore
-      const { passwordHash, ...userWithoutPassword } = newUser;
-      res.status(201).json(userWithoutPassword);
-    } catch (error: any) {
-      res.status(400).json({ message: error.message });
-    }
-  }
+  asyncHandler(async (req, res) => {
+    const validatedUser = UserCreateSchema.parse(req.body);
+    const newUser = await createUserWithImage(validatedUser, req.file);
+    const { passwordHash, ...userWithoutPassword } = newUser as any;
+    res.status(201).json(userWithoutPassword);
+  })
 );
 
 /**
@@ -121,32 +95,27 @@ router.post(
  * Update a user's email and/or password.
  * Expected body may include: { email?: string, password?: string }
  */
-router.put("/:id", async (req: Request, res: Response) => {
-  const id = +req.params.id;
-  try {
-    // Validate the request body using the userSchema
-    const validatedData = UserCreateSchema.parse(req.body);
+router.put(
+  "/:id",
+  asyncHandler(async (req, res) => {
+    const id = Number(req.params.id);
+    const validatedData = UserUpdateSchema.parse(req.body);
     const updatedUser = await updateUser(id, validatedData);
     res.json(updatedUser);
-  } catch (error: any) {
-    if (error instanceof ZodError) {
-      res.status(400).json({
-        message: "Validation failed",
-        errors: error.errors,
-      });
-    }
-    res.status(400).json({ message: error.message });
-  }
-});
+  })
+);
 
 /**
  * DELETE /users/:id
  * Delete a user.
  */
-router.delete("/:id", async (req: Request, res: Response) => {
-  const id = +req.params.id;
-  const deletedUser = await deleteUser(id);
-  res.json(deletedUser);
-});
+router.delete(
+  "/:id",
+  asyncHandler(async (req, res) => {
+    const id = Number(req.params.id);
+    const deletedUser = await deleteUser(id);
+    res.json(deletedUser);
+  })
+);
 
 export default router;
