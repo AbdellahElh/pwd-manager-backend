@@ -25,6 +25,9 @@ export const errorHandler: ErrorRequestHandler = (
       case ServiceErrorCode.FORBIDDEN:
         status = 403;
         break;
+      case ServiceErrorCode.INTERNAL:
+        status = 500;
+        break;
       default:
         status = 500;
     }
