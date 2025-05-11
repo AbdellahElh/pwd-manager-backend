@@ -1,6 +1,7 @@
 // src/routes/credentials.ts
 import { Router } from "express";
 import { asyncHandler } from "../middleware/asyncHandler";
+import { authenticateJWT } from "../middleware/auth";
 import {
   CredentialCreateSchema,
   CredentialUpdateSchema,
@@ -15,6 +16,9 @@ import {
 } from "../services/credential.service";
 
 const router = Router();
+
+// Protect all credential routes with JWT authentication
+router.use(authenticateJWT as any);
 
 /**
  * GET /credentials

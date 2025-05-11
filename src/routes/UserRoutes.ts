@@ -4,6 +4,7 @@ import multer from "multer";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { UserCreateSchema, UserUpdateSchema } from "../schemas/UserSchema";
 import {
+  authenticateWithFace,
   createUser,
   deleteUser,
   getAllUsers,
@@ -48,6 +49,39 @@ router.post(
     const data = UserCreateSchema.parse(req.body);
     const user = await registerUserWithImage(data, req.file!);
     res.status(201).json(user);
+  })
+);
+
+// Endpoint for face login
+router.post(
+  "/login",
+  upload.single("selfie"),
+  asyncHandler(async (req, res) => {
+    const { email } = req.body;
+    if (!email) {
+      res.status(400).json({ message: "Email is required" });
+      return;
+    }
+
+    if (!req.file) {
+      res
+        .status(400)
+        .json({ message: "Selfie is required for authentication" });
+      return;
+    }
+
+    // For better security, you might want to add rate limiting here
+    // to prevent brute force attacks
+
+    try {
+      const user = await authenticateWithFace(email, req.file);
+      res.json(user);
+    } catch (error: any) {
+      console.error("Authentication error:", error);
+      res.status(401).json({
+        message: error.message || "Authentication failed. Please try again.",
+      });
+    }
   })
 );
 
