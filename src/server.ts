@@ -1,39 +1,28 @@
 // src/server.ts
-import express from "express";
 import cors from "cors";
-import userRoutes from "./routes/users";
-import credentialRoutes from "./routes/credentials";
+import dotenv from "dotenv";
+import express from "express";
+import { errorHandler } from "./middleware/errorHandler";
+import credentialRoutes from "./routes/CredentialRoutes";
+import userRoutes from "./routes/UserRoutes";
+
+dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
 app.use(cors());
 
-app.use("/users", userRoutes);
+app.use(express.json());
 
-app.use("/credentials", credentialRoutes);
+// Serve static files from public directory
+app.use(express.static("public"));
 
-// Global error handler: always returns JSON.
-app.use(
-  (
-    err: any,
-    req: express.Request,
-    res: express.Response,
-    next: express.NextFunction
-  ) => {
-    console.error(err);
-    // Use err.status if available (for custom errors) or default to 500.
-    res.status(err.status || 500);
-    res.type("json");
-    res.json({
-      message: err.message || "Internal Server Error",
-      // Optionally include error details if available.
-      details: err.details || undefined,
-    });
-  }
-);
+app.use("/api/users", userRoutes);
+app.use("/api/credentials", credentialRoutes);
 
-const PORT = process.env.PORT || 3000;
+app.use(errorHandler);
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
