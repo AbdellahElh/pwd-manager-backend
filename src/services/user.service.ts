@@ -75,7 +75,9 @@ export async function registerUserWithImage(
     const tempId = Date.now();
     const filename = `user${tempId}.jpg`;
     const filepath = path.join(imagesDir, filename);
-    await fs.writeFile(filepath, file.buffer);
+    // Save the downscaled image instead of the original buffer
+    const downscaledBuffer = canvas.toBuffer("image/jpeg");
+    await fs.writeFile(filepath, downscaledBuffer);
 
     // Store path + descriptor as native JSON array
     const faceImagePath = `/images/${filename}`;
@@ -131,12 +133,16 @@ export async function authenticateWithFace(
       throw ServiceError.validationFailed("Face verification failed");
     }
 
-    // Issue JWT
+    if (!process.env.JWT_SECRET) {
+      throw ServiceError.validationFailed(
+        "JWT_SECRET environment variable is not defined"
+      );
+    }
     const token = jwt.sign(
       { id: user.id, email: user.email },
-      process.env.JWT_SECRET || "changeme",
-      { expiresIn: "7d" }
+      process.env.JWT_SECRET
     );
+
     return {
       user: { id: user.id, email: user.email, faceImage: user.faceImage },
       token,
