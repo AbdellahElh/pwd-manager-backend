@@ -1,7 +1,7 @@
 export interface CredentialEntry {
   id: number;
   website: string;
-  title: string;
+  title?: string;
   username: string;
   password: string;
   userId: number;

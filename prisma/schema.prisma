@@ -7,13 +7,14 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/client"
 }
 
 model User {
   id           Int           @id @default(autoincrement())
   email        String        @unique
-  passwordHash  String
-  faceImage    String?       // Path to user's selfie image
+  faceImage    String       // Path to user's selfie image
+  faceDescriptor Json       // 128-dim face descriptor stored as JSON
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   credentials  Credential[]
@@ -30,5 +31,5 @@ model Credential {
 
   // Foreign key: each credential belongs to a user.
   userId     Int
-  user       User     @relation(fields: [userId], references: [id])
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

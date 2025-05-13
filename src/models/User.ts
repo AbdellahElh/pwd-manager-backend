@@ -1,7 +1,9 @@
+// src/models/User.ts
 export interface UserEntry {
   id: number;
   email: string;
-  password: string;
+  faceImage: string;
+  faceDescriptor: number[];
 }
 
-export type NewUserEntry = Omit<UserEntry, "id">;
+export type NewUserEntry = Pick<UserEntry, 'email'>;
