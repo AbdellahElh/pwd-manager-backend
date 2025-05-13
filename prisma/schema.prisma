@@ -7,6 +7,7 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/client"
 }
 
 model User {
@@ -30,5 +31,5 @@ model Credential {
 
   // Foreign key: each credential belongs to a user.
   userId     Int
-  user       User     @relation(fields: [userId], references: [id])
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
