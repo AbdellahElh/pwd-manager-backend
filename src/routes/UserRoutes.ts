@@ -1,6 +1,5 @@
 // src/routes/users.ts
 import { Router } from "express";
-import multer from "multer";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { UserEmailSchema } from "../schemas/UserSchema";
 import {
@@ -12,7 +11,6 @@ import {
 } from "../services/user.service";
 
 const router = Router();
-const upload = multer({ storage: multer.memoryStorage() });
 
 router.get(
   "/",
@@ -29,24 +27,42 @@ router.get(
   })
 );
 
-// Register → email + selfie
+// Register → email + encrypted selfie
 router.post(
   "/register",
-  upload.single("selfie"),
   asyncHandler(async (req, res) => {
     const { email } = UserEmailSchema.parse(req.body);
-    const user = await registerUserWithImage({ email }, req.file!);
+
+    // Parse encrypted data
+    const encryptedData = {
+      encryptedSelfie: req.body.encryptedSelfie,
+      selfieContentType: req.body.selfieContentType,
+      isEncrypted: req.body.isEncrypted,
+    };
+
+    const user = await registerUserWithImage(
+      { email },
+      undefined,
+      encryptedData
+    );
     res.status(201).json(user);
   })
 );
 
-// Login → email + selfie
+// Login → email + encrypted selfie
 router.post(
   "/login",
-  upload.single("selfie"),
   asyncHandler(async (req, res) => {
     const { email } = UserEmailSchema.parse(req.body);
-    const result = await authenticateWithFace(email, req.file);
+
+    // Parse encrypted data
+    const encryptedData = {
+      encryptedSelfie: req.body.encryptedSelfie,
+      selfieContentType: req.body.selfieContentType,
+      isEncrypted: req.body.isEncrypted,
+    };
+
+    const result = await authenticateWithFace(email, undefined, encryptedData);
     res.json(result);
   })
 );

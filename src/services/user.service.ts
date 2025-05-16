@@ -8,6 +8,7 @@ import path from "path";
 import prisma from "../db";
 import { handleDbError } from "../middleware/handleDbError";
 import { NewUserEntry } from "../models/User";
+import { decryptUserImage } from "../utils/cryptoUtils";
 import { ServiceError } from "./ServiceError";
 
 // Assign the canvas implementations to faceapi
@@ -54,14 +55,44 @@ async function userExists(id: number): Promise<void> {
 
 export async function registerUserWithImage(
   data: NewUserEntry,
-  file: Express.Multer.File
+  file?: Express.Multer.File,
+  encryptedData?: {
+    encryptedSelfie: string;
+    selfieContentType: string;
+    isEncrypted: string;
+  }
 ) {
   try {
-    if (!file) throw ServiceError.validationFailed("Selfie image is required");
+    let imageBuffer: Buffer;
+
+    // Require encrypted selfie data
+    if (
+      encryptedData &&
+      encryptedData.isEncrypted === "true" &&
+      encryptedData.encryptedSelfie
+    ) {
+      try {
+        // Generate a temporary user ID since we don't have a real one yet
+        // This will be replaced with the actual user ID once created
+        const tempId = 0;
+
+        // Decrypt the image
+        imageBuffer = decryptUserImage(
+          encryptedData.encryptedSelfie,
+          tempId,
+          data.email
+        );
+      } catch (error) {
+        console.error("Error decrypting selfie during registration:", error);
+        throw ServiceError.validationFailed("Failed to decrypt selfie image");
+      }
+    } else {
+      throw ServiceError.validationFailed("Encrypted selfie image is required");
+    }
 
     // Process the face image first
     await loadModelsOnce();
-    const canvas = await downscaleBuffer(file.buffer);
+    const canvas = await downscaleBuffer(imageBuffer);
     const faceDetection = await faceapi
       .detectSingleFace(canvas as any, detectorOptions)
       .withFaceLandmarks()
@@ -101,11 +132,14 @@ export async function registerUserWithImage(
 
 export async function authenticateWithFace(
   email: string,
-  file?: Express.Multer.File
+  file?: Express.Multer.File,
+  encryptedData?: {
+    encryptedSelfie: string;
+    selfieContentType: string;
+    isEncrypted: string;
+  }
 ) {
   try {
-    if (!file) throw ServiceError.validationFailed("Selfie is required");
-
     // Find user & ensure descriptor exists
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) throw ServiceError.notFound(`User ${email} not found`);
@@ -113,9 +147,32 @@ export async function authenticateWithFace(
       throw ServiceError.validationFailed("No registered face for user");
     }
 
+    let imageBuffer: Buffer;
+
+    // Require encrypted selfie data
+    if (
+      encryptedData &&
+      encryptedData.isEncrypted === "true" &&
+      encryptedData.encryptedSelfie
+    ) {
+      try {
+        // Decrypt the image using the user's encryption key
+        imageBuffer = decryptUserImage(
+          encryptedData.encryptedSelfie,
+          user.id,
+          email
+        );
+      } catch (error) {
+        console.error("Error decrypting selfie:", error);
+        throw ServiceError.validationFailed("Failed to decrypt selfie image");
+      }
+    } else {
+      throw ServiceError.validationFailed("Encrypted selfie image is required");
+    }
+
     // Downscale selfie & detect
     await loadModelsOnce();
-    const selfieCanvas = await downscaleBuffer(file.buffer);
+    const selfieCanvas = await downscaleBuffer(imageBuffer);
     const selfieDet = await faceapi
       .detectSingleFace(selfieCanvas as any, detectorOptions)
       .withFaceLandmarks()
