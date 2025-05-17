@@ -71,7 +71,6 @@ export const decrypt = (encryptedValue: string, secretKey: string): string => {
 
     return decrypted;
   } catch (error: any) {
-    console.error("Failed to decrypt value:", error);
     // Return empty string instead of throwing to prevent crashes
     return "";
   }

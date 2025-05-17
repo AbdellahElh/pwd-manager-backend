@@ -16,7 +16,7 @@
     "migrate": "npx prisma migrate reset --force",
     "seed": "ts-node prisma/seed.ts",
     "watch": "ts-node-dev src/server.ts",
-    "start": "ts-node src/server.ts",
+    "dev": "ts-node src/server.ts",
     "restore": "npm run migrate && npm run seed && npm run watch",
     "tsc": "tsc"
   },

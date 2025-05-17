@@ -8,6 +8,10 @@ import path from "path";
 import prisma from "../db";
 import { handleDbError } from "../middleware/handleDbError";
 import { NewUserEntry } from "../models/User";
+import {
+  decryptSelfieImage,
+  decryptUserSelfieImage,
+} from "../utils/imageDecryptionUtils";
 import { ServiceError } from "./ServiceError";
 
 // Assign the canvas implementations to faceapi
@@ -25,13 +29,35 @@ const detectorOptions = new faceapi.TinyFaceDetectorOptions({
 });
 
 async function downscaleBuffer(buffer: Buffer, maxDim = 600) {
-  const img = await loadImage(buffer);
-  const ratio = Math.min(maxDim / img.width, maxDim / img.height, 1);
-  const w = Math.round(img.width * ratio);
-  const h = Math.round(img.height * ratio);
-  const canvas = createCanvas(w, h);
-  canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
-  return canvas;
+  try {
+    // Validate buffer before processing
+    if (!buffer || buffer.length === 0) {
+      throw new Error("Empty buffer provided to downscaleBuffer");
+    } // Attempt to determine image format by examining buffer headers
+    let format = "unknown";
+    if (buffer[0] === 0xff && buffer[1] === 0xd8) {
+      format = "jpeg";
+    } else if (
+      buffer[0] === 0x89 &&
+      buffer[1] === 0x50 &&
+      buffer[2] === 0x4e &&
+      buffer[3] === 0x47
+    ) {
+      format = "png";
+    }
+
+    // Try to load the image
+    const img = await loadImage(buffer);
+
+    const ratio = Math.min(maxDim / img.width, maxDim / img.height, 1);
+    const w = Math.round(img.width * ratio);
+    const h = Math.round(img.height * ratio);
+    const canvas = createCanvas(w, h);
+    canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
+    return canvas;
+  } catch (error: any) {
+    throw new Error(`Failed to process image: ${error.message}`);
+  }
 }
 
 let modelsLoaded = false;
@@ -59,9 +85,21 @@ export async function registerUserWithImage(
   try {
     if (!file) throw ServiceError.validationFailed("Selfie image is required");
 
-    // Process the face image first
+    // Check if we received an encrypted image
+    let fileBuffer = file.buffer;
+    const encryptedImage = file.fieldname === "encryptedImage";
+    if (encryptedImage) {
+      try {
+        // Decrypt the selfie image
+        fileBuffer = decryptSelfieImage(fileBuffer, data.email);
+      } catch (decryptError) {
+        throw ServiceError.validationFailed("Failed to decrypt image data");
+      }
+    }
+
+    // Process the face image
     await loadModelsOnce();
-    const canvas = await downscaleBuffer(file.buffer);
+    const canvas = await downscaleBuffer(fileBuffer);
     const faceDetection = await faceapi
       .detectSingleFace(canvas as any, detectorOptions)
       .withFaceLandmarks()
@@ -113,9 +151,26 @@ export async function authenticateWithFace(
       throw ServiceError.validationFailed("No registered face for user");
     }
 
+    // Check if we received an encrypted image
+    let fileBuffer = file.buffer;
+    const encryptedImage = file.fieldname === "encryptedImage";
+
+    if (encryptedImage) {
+      try {
+        // Try to decrypt using the user-specific key
+        if (user && user.id) {
+          fileBuffer = decryptUserSelfieImage(fileBuffer, user.id, email);
+        } else {
+          fileBuffer = decryptSelfieImage(fileBuffer, email);
+        }
+      } catch (decryptError) {
+        throw ServiceError.validationFailed("Failed to decrypt image data");
+      }
+    }
+
     // Downscale selfie & detect
     await loadModelsOnce();
-    const selfieCanvas = await downscaleBuffer(file.buffer);
+    const selfieCanvas = await downscaleBuffer(fileBuffer);
     const selfieDet = await faceapi
       .detectSingleFace(selfieCanvas as any, detectorOptions)
       .withFaceLandmarks()
