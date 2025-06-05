@@ -8,6 +8,7 @@ const express_1 = require("express");
 const multer_1 = __importDefault(require("multer"));
 const asyncHandler_1 = require("../middleware/asyncHandler");
 const UserSchema_1 = require("../schemas/UserSchema");
+const ServiceError_1 = require("../services/ServiceError");
 const user_service_1 = require("../services/user.service");
 const router = (0, express_1.Router)();
 const upload = (0, multer_1.default)({ storage: multer_1.default.memoryStorage() });
@@ -46,7 +47,7 @@ router.post("/register", upload.fields([
     }
     else {
         // Neither encrypted image nor selfie file provided
-        throw new Error("No selfie provided for registration");
+        throw ServiceError_1.ServiceError.validationFailed("No selfie provided for registration. Please capture a photo to create your account.");
     }
 }));
 // Login → email + selfie (supporting both encrypted and unencrypted images)
@@ -77,7 +78,7 @@ router.post("/login", upload.fields([
     }
     else {
         // Neither encrypted image nor selfie file provided
-        throw new Error("No selfie provided for authentication");
+        throw ServiceError_1.ServiceError.validationFailed("No selfie provided for authentication. Please capture a photo to login.");
     }
 }));
 // Delete

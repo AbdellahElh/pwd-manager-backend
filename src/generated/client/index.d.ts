@@ -1013,7 +1013,6 @@ export namespace Prisma {
   export type UserMinAggregateOutputType = {
     id: number | null
     email: string | null
-    faceImage: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -1021,7 +1020,6 @@ export namespace Prisma {
   export type UserMaxAggregateOutputType = {
     id: number | null
     email: string | null
-    faceImage: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -1029,7 +1027,6 @@ export namespace Prisma {
   export type UserCountAggregateOutputType = {
     id: number
     email: number
-    faceImage: number
     faceDescriptor: number
     createdAt: number
     updatedAt: number
@@ -1048,7 +1045,6 @@ export namespace Prisma {
   export type UserMinAggregateInputType = {
     id?: true
     email?: true
-    faceImage?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -1056,7 +1052,6 @@ export namespace Prisma {
   export type UserMaxAggregateInputType = {
     id?: true
     email?: true
-    faceImage?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -1064,7 +1059,6 @@ export namespace Prisma {
   export type UserCountAggregateInputType = {
     id?: true
     email?: true
-    faceImage?: true
     faceDescriptor?: true
     createdAt?: true
     updatedAt?: true
@@ -1160,7 +1154,6 @@ export namespace Prisma {
   export type UserGroupByOutputType = {
     id: number
     email: string
-    faceImage: string
     faceDescriptor: JsonValue
     createdAt: Date
     updatedAt: Date
@@ -1188,7 +1181,6 @@ export namespace Prisma {
   export type UserSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     email?: boolean
-    faceImage?: boolean
     faceDescriptor?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -1199,7 +1191,6 @@ export namespace Prisma {
   export type UserSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     email?: boolean
-    faceImage?: boolean
     faceDescriptor?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -1208,7 +1199,6 @@ export namespace Prisma {
   export type UserSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     email?: boolean
-    faceImage?: boolean
     faceDescriptor?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -1217,13 +1207,12 @@ export namespace Prisma {
   export type UserSelectScalar = {
     id?: boolean
     email?: boolean
-    faceImage?: boolean
     faceDescriptor?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "faceImage" | "faceDescriptor" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "faceDescriptor" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     credentials?: boolean | User$credentialsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
@@ -1239,7 +1228,6 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: number
       email: string
-      faceImage: string
       faceDescriptor: Prisma.JsonValue
       createdAt: Date
       updatedAt: Date
@@ -1669,7 +1657,6 @@ export namespace Prisma {
   interface UserFieldRefs {
     readonly id: FieldRef<"User", 'Int'>
     readonly email: FieldRef<"User", 'String'>
-    readonly faceImage: FieldRef<"User", 'String'>
     readonly faceDescriptor: FieldRef<"User", 'Json'>
     readonly createdAt: FieldRef<"User", 'DateTime'>
     readonly updatedAt: FieldRef<"User", 'DateTime'>
@@ -3248,7 +3235,6 @@ export namespace Prisma {
   export const UserScalarFieldEnum: {
     id: 'id',
     email: 'email',
-    faceImage: 'faceImage',
     faceDescriptor: 'faceDescriptor',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
@@ -3367,7 +3353,6 @@ export namespace Prisma {
     NOT?: UserWhereInput | UserWhereInput[]
     id?: IntFilter<"User"> | number
     email?: StringFilter<"User"> | string
-    faceImage?: StringFilter<"User"> | string
     faceDescriptor?: JsonFilter<"User">
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
@@ -3377,7 +3362,6 @@ export namespace Prisma {
   export type UserOrderByWithRelationInput = {
     id?: SortOrder
     email?: SortOrder
-    faceImage?: SortOrder
     faceDescriptor?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -3390,7 +3374,6 @@ export namespace Prisma {
     AND?: UserWhereInput | UserWhereInput[]
     OR?: UserWhereInput[]
     NOT?: UserWhereInput | UserWhereInput[]
-    faceImage?: StringFilter<"User"> | string
     faceDescriptor?: JsonFilter<"User">
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
@@ -3400,7 +3383,6 @@ export namespace Prisma {
   export type UserOrderByWithAggregationInput = {
     id?: SortOrder
     email?: SortOrder
-    faceImage?: SortOrder
     faceDescriptor?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -3417,7 +3399,6 @@ export namespace Prisma {
     NOT?: UserScalarWhereWithAggregatesInput | UserScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter<"User"> | number
     email?: StringWithAggregatesFilter<"User"> | string
-    faceImage?: StringWithAggregatesFilter<"User"> | string
     faceDescriptor?: JsonWithAggregatesFilter<"User">
     createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
@@ -3497,7 +3478,6 @@ export namespace Prisma {
 
   export type UserCreateInput = {
     email: string
-    faceImage: string
     faceDescriptor: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -3507,7 +3487,6 @@ export namespace Prisma {
   export type UserUncheckedCreateInput = {
     id?: number
     email: string
-    faceImage: string
     faceDescriptor: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -3516,7 +3495,6 @@ export namespace Prisma {
 
   export type UserUpdateInput = {
     email?: StringFieldUpdateOperationsInput | string
-    faceImage?: StringFieldUpdateOperationsInput | string
     faceDescriptor?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -3526,7 +3504,6 @@ export namespace Prisma {
   export type UserUncheckedUpdateInput = {
     id?: IntFieldUpdateOperationsInput | number
     email?: StringFieldUpdateOperationsInput | string
-    faceImage?: StringFieldUpdateOperationsInput | string
     faceDescriptor?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -3536,7 +3513,6 @@ export namespace Prisma {
   export type UserCreateManyInput = {
     id?: number
     email: string
-    faceImage: string
     faceDescriptor: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -3544,7 +3520,6 @@ export namespace Prisma {
 
   export type UserUpdateManyMutationInput = {
     email?: StringFieldUpdateOperationsInput | string
-    faceImage?: StringFieldUpdateOperationsInput | string
     faceDescriptor?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -3553,7 +3528,6 @@ export namespace Prisma {
   export type UserUncheckedUpdateManyInput = {
     id?: IntFieldUpdateOperationsInput | number
     email?: StringFieldUpdateOperationsInput | string
-    faceImage?: StringFieldUpdateOperationsInput | string
     faceDescriptor?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -3699,7 +3673,6 @@ export namespace Prisma {
   export type UserCountOrderByAggregateInput = {
     id?: SortOrder
     email?: SortOrder
-    faceImage?: SortOrder
     faceDescriptor?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -3712,7 +3685,6 @@ export namespace Prisma {
   export type UserMaxOrderByAggregateInput = {
     id?: SortOrder
     email?: SortOrder
-    faceImage?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -3720,7 +3692,6 @@ export namespace Prisma {
   export type UserMinOrderByAggregateInput = {
     id?: SortOrder
     email?: SortOrder
-    faceImage?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -4171,7 +4142,6 @@ export namespace Prisma {
 
   export type UserCreateWithoutCredentialsInput = {
     email: string
-    faceImage: string
     faceDescriptor: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -4180,7 +4150,6 @@ export namespace Prisma {
   export type UserUncheckedCreateWithoutCredentialsInput = {
     id?: number
     email: string
-    faceImage: string
     faceDescriptor: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -4204,7 +4173,6 @@ export namespace Prisma {
 
   export type UserUpdateWithoutCredentialsInput = {
     email?: StringFieldUpdateOperationsInput | string
-    faceImage?: StringFieldUpdateOperationsInput | string
     faceDescriptor?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -4213,7 +4181,6 @@ export namespace Prisma {
   export type UserUncheckedUpdateWithoutCredentialsInput = {
     id?: IntFieldUpdateOperationsInput | number
     email?: StringFieldUpdateOperationsInput | string
-    faceImage?: StringFieldUpdateOperationsInput | string
     faceDescriptor?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string

@@ -45,7 +45,6 @@ exports.deleteUser = deleteUser;
 // src/services/user.service.ts
 const canvas_1 = require("canvas");
 const faceapi = __importStar(require("face-api.js"));
-const promises_1 = __importDefault(require("fs/promises"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const path_1 = __importDefault(require("path"));
 const db_1 = __importDefault(require("../db"));
@@ -55,9 +54,6 @@ const ServiceError_1 = require("./ServiceError");
 // Assign the canvas implementations to faceapi
 // @ts-ignore
 faceapi.env.monkeyPatch({ Canvas: canvas_1.Canvas, Image: canvas_1.Image });
-// Remove SALT_ROUNDS constant as it's no longer needed
-const imagesDir = path_1.default.join(__dirname, "../../public/images");
-promises_1.default.mkdir(imagesDir, { recursive: true }).catch(() => { });
 // TinyFaceDetector options (faster)
 const detectorOptions = new faceapi.TinyFaceDetectorOptions({
     inputSize: 160,
@@ -133,28 +129,18 @@ async function registerUserWithImage(data, file) {
             .withFaceLandmarks()
             .withFaceDescriptor();
         if (!faceDetection) {
-            throw ServiceError_1.ServiceError.validationFailed("No face detected");
+            throw ServiceError_1.ServiceError.validationFailed("No face detected in the image. Please ensure your face is clearly visible and well-lit, then try again.");
         }
-        // Create a temporary user ID to use for the filename
-        const tempId = Date.now();
-        const filename = `user${tempId}.jpg`;
-        const filepath = path_1.default.join(imagesDir, filename);
-        // Save the downscaled image instead of the original buffer
-        const downscaledBuffer = canvas.toBuffer("image/jpeg");
-        await promises_1.default.writeFile(filepath, downscaledBuffer);
-        // Store path + descriptor as native JSON array
-        const faceImagePath = `/images/${filename}`;
+        // Store only the face descriptor as native JSON array
         const faceDescriptorArray = Array.from(faceDetection.descriptor);
-        // Now create the user with all required fields
+        // Create the user with face descriptor only
         const newUser = await db_1.default.user.create({
             data: {
                 email: data.email,
-                faceImage: faceImagePath,
                 faceDescriptor: faceDescriptorArray,
             },
         });
-        // Return the user with face image
-        return { ...newUser, faceImage: faceImagePath };
+        return newUser;
     }
     catch (err) {
         throw (0, handleDbError_1.handleDbError)(err);
@@ -169,7 +155,7 @@ async function authenticateWithFace(email, file) {
         if (!user)
             throw ServiceError_1.ServiceError.notFound(`User ${email} not found`);
         if (!user.faceDescriptor) {
-            throw ServiceError_1.ServiceError.validationFailed("No registered face for user");
+            throw ServiceError_1.ServiceError.validationFailed("No registered face found for this user. Please contact support to re-register your account.");
         }
         // Check if we received an encrypted image
         let fileBuffer = file.buffer;
@@ -196,20 +182,20 @@ async function authenticateWithFace(email, file) {
             .withFaceLandmarks()
             .withFaceDescriptor();
         if (!selfieDet)
-            throw ServiceError_1.ServiceError.validationFailed("No face in selfie");
+            throw ServiceError_1.ServiceError.validationFailed("No face detected in the image. Please ensure your face is clearly visible and well-lit, then try again.");
         // Compare to stored descriptor (native JSON array)
         const stored = user.faceDescriptor;
         const storedDescriptor = new Float32Array(stored);
         const distance = faceapi.euclideanDistance(storedDescriptor, selfieDet.descriptor);
         if (distance > 0.6) {
-            throw ServiceError_1.ServiceError.validationFailed("Face verification failed");
+            throw ServiceError_1.ServiceError.validationFailed("Face verification failed. The face in the image doesn't match your registered face. Please try again or contact support if this continues.");
         }
         if (!process.env.JWT_SECRET) {
             throw ServiceError_1.ServiceError.validationFailed("JWT_SECRET environment variable is not defined");
         }
         const token = jsonwebtoken_1.default.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET);
         return {
-            user: { id: user.id, email: user.email, faceImage: user.faceImage },
+            user: { id: user.id, email: user.email },
             token,
         };
     }
