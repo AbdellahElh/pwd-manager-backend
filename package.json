@@ -1,7 +1,6 @@
 {
   "dependencies": {
     "@prisma/client": "^6.3.1",
-    "bcrypt": "^5.1.1",
     "canvas": "^3.1.0",
     "cors": "^2.8.5",
     "crypto-js": "^4.2.0",
@@ -14,15 +13,13 @@
   },
   "scripts": {
     "migrate": "npx prisma migrate reset --force",
-    "seed": "ts-node prisma/seed.ts",
     "watch": "ts-node-dev src/server.ts",
     "dev": "ts-node src/server.ts",
-    "restore": "npm run migrate && npm run seed && npm run watch",
+    "restore": "npm run migrate && npm run watch",
     "tsc": "tsc"
   },
   "devDependencies": {
     "@types/crypto-js": "^4.2.2",
-    "@types/bcrypt": "^5.0.2",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/jsonwebtoken": "^9.0.8",
