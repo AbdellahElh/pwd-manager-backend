@@ -1,7 +1,6 @@
 // src/services/user.service.ts
 import { Canvas, Image, createCanvas, loadImage } from "canvas";
 import * as faceapi from "face-api.js";
-import fs from "fs/promises";
 import jwt from "jsonwebtoken";
 import path from "path";
 
@@ -17,10 +16,6 @@ import { ServiceError } from "./ServiceError";
 // Assign the canvas implementations to faceapi
 // @ts-ignore
 faceapi.env.monkeyPatch({ Canvas, Image });
-
-// Remove SALT_ROUNDS constant as it's no longer needed
-const imagesDir = path.join(__dirname, "../../public/images");
-fs.mkdir(imagesDir, { recursive: true }).catch(() => {});
 
 // TinyFaceDetector options (faster)
 const detectorOptions = new faceapi.TinyFaceDetectorOptions({
@@ -104,34 +99,24 @@ export async function registerUserWithImage(
       .detectSingleFace(canvas as any, detectorOptions)
       .withFaceLandmarks()
       .withFaceDescriptor();
-
     if (!faceDetection) {
-      throw ServiceError.validationFailed("No face detected");
+      throw ServiceError.validationFailed(
+        "No face detected in the image. Please ensure your face is clearly visible and well-lit, then try again."
+      );
     }
 
-    // Create a temporary user ID to use for the filename
-    const tempId = Date.now();
-    const filename = `user${tempId}.jpg`;
-    const filepath = path.join(imagesDir, filename);
-    // Save the downscaled image instead of the original buffer
-    const downscaledBuffer = canvas.toBuffer("image/jpeg");
-    await fs.writeFile(filepath, downscaledBuffer);
-
-    // Store path + descriptor as native JSON array
-    const faceImagePath = `/images/${filename}`;
+    // Store only the face descriptor as native JSON array
     const faceDescriptorArray = Array.from(faceDetection.descriptor);
 
-    // Now create the user with all required fields
+    // Create the user with face descriptor only
     const newUser = await prisma.user.create({
       data: {
         email: data.email,
-        faceImage: faceImagePath,
         faceDescriptor: faceDescriptorArray,
       },
     });
 
-    // Return the user with face image
-    return { ...newUser, faceImage: faceImagePath };
+    return newUser;
   } catch (err) {
     throw handleDbError(err);
   }
@@ -148,7 +133,9 @@ export async function authenticateWithFace(
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) throw ServiceError.notFound(`User ${email} not found`);
     if (!user.faceDescriptor) {
-      throw ServiceError.validationFailed("No registered face for user");
+      throw ServiceError.validationFailed(
+        "No registered face found for this user. Please contact support to re-register your account."
+      );
     }
 
     // Check if we received an encrypted image
@@ -175,7 +162,10 @@ export async function authenticateWithFace(
       .detectSingleFace(selfieCanvas as any, detectorOptions)
       .withFaceLandmarks()
       .withFaceDescriptor();
-    if (!selfieDet) throw ServiceError.validationFailed("No face in selfie");
+    if (!selfieDet)
+      throw ServiceError.validationFailed(
+        "No face detected in the image. Please ensure your face is clearly visible and well-lit, then try again."
+      );
 
     // Compare to stored descriptor (native JSON array)
     const stored = user.faceDescriptor as number[];
@@ -185,7 +175,9 @@ export async function authenticateWithFace(
       selfieDet.descriptor
     );
     if (distance > 0.6) {
-      throw ServiceError.validationFailed("Face verification failed");
+      throw ServiceError.validationFailed(
+        "Face verification failed. The face in the image doesn't match your registered face. Please try again or contact support if this continues."
+      );
     }
 
     if (!process.env.JWT_SECRET) {
@@ -197,9 +189,8 @@ export async function authenticateWithFace(
       { id: user.id, email: user.email },
       process.env.JWT_SECRET
     );
-
     return {
-      user: { id: user.id, email: user.email, faceImage: user.faceImage },
+      user: { id: user.id, email: user.email },
       token,
     };
   } catch (err) {

@@ -2,8 +2,7 @@
 export interface UserEntry {
   id: number;
   email: string;
-  faceImage: string;
   faceDescriptor: number[];
 }
 
-export type NewUserEntry = Pick<UserEntry, 'email'>;
+export type NewUserEntry = Pick<UserEntry, "email">;

@@ -3,6 +3,7 @@ import { Router } from "express";
 import multer from "multer";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { UserEmailSchema } from "../schemas/UserSchema";
+import { ServiceError } from "../services/ServiceError";
 import {
   authenticateWithFace,
   deleteUser,
@@ -60,7 +61,9 @@ router.post(
       res.status(201).json(user);
     } else {
       // Neither encrypted image nor selfie file provided
-      throw new Error("No selfie provided for registration");
+      throw ServiceError.validationFailed(
+        "No selfie provided for registration. Please capture a photo to create your account."
+      );
     }
   })
 );
@@ -96,7 +99,9 @@ router.post(
       res.json(result);
     } else {
       // Neither encrypted image nor selfie file provided
-      throw new Error("No selfie provided for authentication");
+      throw ServiceError.validationFailed(
+        "No selfie provided for authentication. Please capture a photo to login."
+      );
     }
   })
 );

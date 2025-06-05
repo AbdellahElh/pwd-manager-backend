@@ -13,7 +13,6 @@ generator client {
 model User {
   id             Int          @id @default(autoincrement())
   email          String       @unique
-  faceImage      String // Path to user's selfie image
   faceDescriptor Json // 128-dim face descriptor stored as JSON
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
